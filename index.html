@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #f59e0b;
@@ -17,7 +18,7 @@
             --danger: #ef4444;
             --bg-dark: #0f0f23;
             --bg-card: rgba(255, 255, 255, 0.05);
-            --text: #ffffff;
+            --text: #fff;
             --text-muted: #94a3b8;
             --border: rgba(255, 255, 255, 0.1);
             --glow: rgba(245, 158, 11, 0.5);
@@ -39,9 +40,7 @@
         .bg-gradient {
             position: fixed;
             inset: 0;
-            background:
-                radial-gradient(ellipse at 30% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 30% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
             z-index: -1;
         }
 
@@ -53,6 +52,9 @@
             background: var(--bg-card);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
@@ -73,106 +75,138 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .badge-pro {
+        .badge {
             background: linear-gradient(135deg, var(--secondary), #a78bfa);
             color: #fff;
             font-size: 0.65rem;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
             font-weight: 700;
-            margin-left: 0.5rem;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        .hero {
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .setup-card {
+        .stat-card {
             background: var(--bg-card);
-            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            border-radius: 16px;
+            padding: 1.5rem;
         }
 
-        .setup-card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            font-size: 1rem;
         }
 
-        .setup-card h2 i {
+        .stat-icon.products {
+            background: rgba(245, 158, 11, 0.2);
             color: var(--primary);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .stat-icon.alerts {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .stat-icon.savings {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .stat-icon.competitors {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--secondary);
+        }
+
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        .stat-trend.up {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
             color: var(--text-muted);
             font-size: 0.9rem;
         }
 
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--text);
-            font-size: 1rem;
-            transition: all 0.3s;
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 20px var(--glow);
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-header h3 i {
+            color: var(--primary);
         }
 
         .btn {
-            padding: 1rem 2rem;
+            padding: 0.6rem 1.2rem;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -180,45 +214,67 @@
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 20px var(--glow);
+            color: #fff;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px var(--glow);
+            box-shadow: 0 4px 15px var(--glow);
         }
 
-        .tracking-list {
-            margin-top: 2rem;
-        }
-
-        .tracking-item {
-            background: var(--bg-card);
+        .btn-outline {
+            background: transparent;
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .product-item {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
             transition: all 0.3s;
         }
 
-        .tracking-item:hover {
+        .product-item:hover {
             border-color: var(--primary);
             transform: translateX(4px);
         }
 
+        .product-item.active {
+            border-color: var(--primary);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
         .product-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
 
         .product-info {
@@ -227,55 +283,34 @@
 
         .product-name {
             font-weight: 600;
-            font-size: 1.1rem;
             margin-bottom: 0.25rem;
         }
 
-        .product-store {
+        .product-sku {
+            font-size: 0.85rem;
             color: var(--text-muted);
-            font-size: 0.9rem;
         }
 
-        .price-comparison {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
+        .product-prices {
+            text-align: right;
         }
 
-        .price-box {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            min-width: 120px;
-        }
-
-        .price-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.25rem;
-        }
-
-        .price-value {
-            font-size: 1.5rem;
+        .your-price {
+            font-size: 1.25rem;
             font-weight: 700;
-        }
-
-        .price-value.your {
             color: var(--secondary);
         }
 
-        .price-value.competitor {
-            color: var(--primary);
+        .competitor-price {
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
         .price-diff {
-            font-size: 0.85rem;
-            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 20px;
-            margin-top: 0.5rem;
+            margin-top: 0.25rem;
             display: inline-block;
         }
 
@@ -289,41 +324,160 @@
             color: var(--success);
         }
 
-        .price-diff.same {
-            background: rgba(148, 163, 184, 0.2);
-            color: var(--text-muted);
+        .alerts-panel {}
+
+        .alert-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
         }
 
-        .alert-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
+        .alert-item.critical {
+            border-left: 3px solid var(--danger);
+        }
+
+        .alert-item.warning {
+            border-left: 3px solid var(--primary);
+        }
+
+        .alert-item.info {
+            border-left: 3px solid var(--secondary);
+        }
+
+        .alert-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .alert-badge.danger {
+        .alert-icon.critical {
             background: rgba(239, 68, 68, 0.2);
             color: var(--danger);
         }
 
-        .alert-badge.success {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
+        .alert-icon.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--primary);
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
+        .alert-icon.info {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--secondary);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-desc {
+            font-size: 0.8rem;
             color: var(--text-muted);
         }
 
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
+        .alert-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .add-product-form {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-row input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .competitors-list {
+            margin-top: 1rem;
+        }
+
+        .competitor-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .competitor-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .competitor-name {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .competitor-price {
+            font-weight: 600;
+        }
+
+        .competitor-diff {
+            font-size: 0.8rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
         }
 
         footer {
@@ -331,12 +485,28 @@
             padding: 3rem;
             color: var(--text-muted);
             border-top: 1px solid var(--border);
-            margin-top: 4rem;
+            margin-top: 3rem;
         }
 
         footer a {
             color: var(--primary);
             text-decoration: none;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -348,170 +518,256 @@
         <div class="logo">
             <i class="fas fa-binoculars"></i>
             <span>PriceHawk</span>
-            <span class="badge-pro">BETA</span>
+            <span class="badge">PRO</span>
         </div>
-        <nav>
-            <a href="landing.html" style="color: var(--text-muted); text-decoration: none;">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </nav>
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-outline"><i class="fas fa-cog"></i> Settings</button>
+            <button class="btn btn-primary" onclick="showAddProduct()"><i class="fas fa-plus"></i> Add Product</button>
+        </div>
     </header>
 
     <main class="container">
-        <section class="hero">
-            <h1>Track Competitor Prices</h1>
-            <p>Monitor your competitors' pricing in real-time. Get alerts when they change prices.</p>
-        </section>
-
-        <div class="setup-card">
-            <h2><i class="fas fa-plus-circle"></i> Add Product to Track</h2>
-
-            <div class="form-group">
-                <label>Your Product URL</label>
-                <input type="url" id="yourProductUrl" placeholder="https://yourstore.myshopify.com/products/example">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon products"><i class="fas fa-box"></i></div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</span>
+                </div>
+                <div class="stat-value">24</div>
+                <div class="stat-label">Products Tracked</div>
             </div>
-
-            <div class="form-group">
-                <label>Competitor Product URL</label>
-                <input type="url" id="competitorUrl" placeholder="https://competitor.com/products/similar-item">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon alerts"><i class="fas fa-bell"></i></div>
+                    <span class="stat-trend down"><i class="fas fa-arrow-down"></i> 5</span>
+                </div>
+                <div class="stat-value">7</div>
+                <div class="stat-label">Active Alerts</div>
             </div>
-
-            <button class="btn btn-primary" onclick="addTracking()">
-                <i class="fas fa-plus"></i>
-                Start Tracking
-            </button>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon savings"><i class="fas fa-dollar-sign"></i></div>
+                    <span class="stat-trend up"><i class="fas fa-arrow-up"></i> $450</span>
+                </div>
+                <div class="stat-value">$2,840</div>
+                <div class="stat-label">Potential Savings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon competitors"><i class="fas fa-users"></i></div>
+                </div>
+                <div class="stat-value">8</div>
+                <div class="stat-label">Competitors Monitored</div>
+            </div>
         </div>
 
-        <div class="tracking-list" id="trackingList">
-            <h2 style="margin-bottom: 1.5rem;">
-                <i class="fas fa-chart-line" style="color: var(--primary);"></i>
-                Tracked Products
-            </h2>
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Price History</h3>
+                    <div class="tabs">
+                        <button class="tab active" onclick="setRange('7d')">7D</button>
+                        <button class="tab" onclick="setRange('30d')">30D</button>
+                        <button class="tab" onclick="setRange('90d')">90D</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
 
-            <div id="trackedProducts">
-                <!-- Dynamic content -->
+                <div class="card-header" style="margin-top: 1.5rem;">
+                    <h3><i class="fas fa-list"></i> Tracked Products</h3>
+                    <button class="btn btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
+                </div>
+                <div class="product-list" id="productList"></div>
+            </div>
+
+            <div>
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Price Alerts</h3>
+                        <button class="btn btn-outline btn-sm">View All</button>
+                    </div>
+                    <div class="alerts-panel" id="alertsPanel"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-store"></i> Competitor Prices</h3>
+                    </div>
+                    <div id="selectedProduct" style="margin-bottom: 1rem;">
+                        <div style="font-weight: 600;">Premium Wireless Headphones</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Your price: $99.99</div>
+                    </div>
+                    <div class="competitors-list" id="competitorsList"></div>
+                </div>
             </div>
         </div>
     </main>
 
     <footer>
         <p>Part of the <a href="#">ShopifyHero Tools</a> suite</p>
-        <p style="margin-top: 0.5rem; font-size: 0.85rem;">Built with ❤️ for Shopify merchants</p>
     </footer>
 
     <script>
-        const sampleProducts = [
-            {
-                name: "Premium Wireless Headphones",
-                store: "yourstore.myshopify.com",
-                yourPrice: 99.99,
-                competitorPrice: 89.99,
-                lastChecked: "2 hours ago"
-            },
-            {
-                name: "Ergonomic Office Chair",
-                store: "yourstore.myshopify.com",
-                yourPrice: 299.00,
-                competitorPrice: 319.00,
-                lastChecked: "1 hour ago"
-            },
-            {
-                name: "Smart Watch Pro",
-                store: "yourstore.myshopify.com",
-                yourPrice: 199.99,
-                competitorPrice: 199.99,
-                lastChecked: "30 mins ago"
-            }
+        const products = [
+            { id: 1, name: 'Premium Wireless Headphones', sku: 'HDN-001', emoji: '🎧', yourPrice: 99.99, competitors: [{ name: 'Amazon', price: 89.99 }, { name: 'BestBuy', price: 94.99 }, { name: 'Walmart', price: 97.99 }] },
+            { id: 2, name: 'Ergonomic Office Chair', sku: 'CHR-002', emoji: '🪑', yourPrice: 299.00, competitors: [{ name: 'Amazon', price: 319.00 }, { name: 'Wayfair', price: 289.00 }] },
+            { id: 3, name: 'Smart Watch Pro', sku: 'WCH-003', emoji: '⌚', yourPrice: 199.99, competitors: [{ name: 'Amazon', price: 199.99 }, { name: 'Target', price: 209.99 }] },
+            { id: 4, name: 'Bluetooth Speaker', sku: 'SPK-004', emoji: '🔊', yourPrice: 79.99, competitors: [{ name: 'Amazon', price: 69.99 }, { name: 'BestBuy', price: 74.99 }] },
         ];
 
+        const alerts = [
+            { type: 'critical', title: 'Price dropped below yours!', desc: 'Amazon lowered Headphones to $89.99', time: '2 hours ago' },
+            { type: 'warning', title: 'Competitor sale detected', desc: 'BestBuy running 15% off on electronics', time: '5 hours ago' },
+            { type: 'info', title: 'Price increased', desc: 'Wayfair raised Chair price by $30', time: '1 day ago' },
+            { type: 'critical', title: 'MAP violation detected', desc: 'Unauthorized seller pricing at $59.99', time: '1 day ago' },
+        ];
+
+        let selectedProduct = products[0];
+        let priceChart = null;
+
         function renderProducts() {
-            const container = document.getElementById('trackedProducts');
-
-            if (sampleProducts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <h3>No products tracked yet</h3>
-                        <p>Add your first product above to start monitoring competitor prices.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = sampleProducts.map((product, index) => {
-                const diff = product.yourPrice - product.competitorPrice;
-                const diffPercent = ((diff / product.competitorPrice) * 100).toFixed(1);
-                let diffClass, diffText, alertClass, alertText;
-
-                if (diff > 0) {
-                    diffClass = 'higher';
-                    diffText = `+$${diff.toFixed(2)} (${diffPercent}%)`;
-                    alertClass = 'danger';
-                    alertText = '<i class="fas fa-exclamation-triangle"></i> You\'re priced higher';
-                } else if (diff < 0) {
-                    diffClass = 'lower';
-                    diffText = `-$${Math.abs(diff).toFixed(2)} (${Math.abs(diffPercent)}%)`;
-                    alertClass = 'success';
-                    alertText = '<i class="fas fa-check-circle"></i> You\'re priced lower';
-                } else {
-                    diffClass = 'same';
-                    diffText = 'Same price';
-                    alertText = '';
-                }
-
-                const icons = ['📦', '🪑', '⌚', '👟', '📱'];
-
+            const list = document.getElementById('productList');
+            list.innerHTML = products.map(p => {
+                const lowestComp = Math.min(...p.competitors.map(c => c.price));
+                const diff = p.yourPrice - lowestComp;
+                const diffClass = diff > 0 ? 'higher' : 'lower';
+                const diffText = diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
                 return `
-                    <div class="tracking-item">
-                        <div class="product-img">${icons[index % icons.length]}</div>
+                    <div class="product-item ${p.id === selectedProduct.id ? 'active' : ''}" onclick="selectProduct(${p.id})">
+                        <div class="product-img">${p.emoji}</div>
                         <div class="product-info">
-                            <div class="product-name">${product.name}</div>
-                            <div class="product-store">${product.store} · Updated ${product.lastChecked}</div>
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-sku">SKU: ${p.sku}</div>
                         </div>
-                        <div class="price-comparison">
-                            <div class="price-box">
-                                <div class="price-label">Your Price</div>
-                                <div class="price-value your">$${product.yourPrice.toFixed(2)}</div>
-                            </div>
-                            <div class="price-box">
-                                <div class="price-label">Competitor</div>
-                                <div class="price-value competitor">$${product.competitorPrice.toFixed(2)}</div>
-                                <div class="price-diff ${diffClass}">${diffText}</div>
-                            </div>
+                        <div class="product-prices">
+                            <div class="your-price">$${p.yourPrice.toFixed(2)}</div>
+                            <div class="competitor-price">vs $${lowestComp.toFixed(2)}</div>
+                            <div class="price-diff ${diffClass}">${diffText}</div>
                         </div>
-                        ${alertText ? `<div class="alert-badge ${alertClass}">${alertText}</div>` : ''}
                     </div>
                 `;
             }).join('');
         }
 
-        function addTracking() {
-            const yourUrl = document.getElementById('yourProductUrl').value.trim();
-            const compUrl = document.getElementById('competitorUrl').value.trim();
-
-            if (!yourUrl || !compUrl) {
-                alert('Please enter both URLs');
-                return;
-            }
-
-            // Simulate adding a product
-            sampleProducts.unshift({
-                name: "New Tracked Product",
-                store: yourUrl.split('/')[2] || "yourstore.com",
-                yourPrice: (Math.random() * 100 + 50).toFixed(2) * 1,
-                competitorPrice: (Math.random() * 100 + 50).toFixed(2) * 1,
-                lastChecked: "Just now"
-            });
-
-            renderProducts();
-
-            // Clear inputs
-            document.getElementById('yourProductUrl').value = '';
-            document.getElementById('competitorUrl').value = '';
+        function renderAlerts() {
+            const panel = document.getElementById('alertsPanel');
+            panel.innerHTML = alerts.map(a => `
+                <div class="alert-item ${a.type}">
+                    <div class="alert-icon ${a.type}">
+                        <i class="fas ${a.type === 'critical' ? 'fa-exclamation' : a.type === 'warning' ? 'fa-bell' : 'fa-info'}"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">${a.title}</div>
+                        <div class="alert-desc">${a.desc}</div>
+                    </div>
+                    <div class="alert-time">${a.time}</div>
+                </div>
+            `).join('');
         }
 
-        // Initial render
+        function renderCompetitors() {
+            const list = document.getElementById('competitorsList');
+            document.getElementById('selectedProduct').innerHTML = `
+                <div style="font-weight: 600;">${selectedProduct.name}</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem;">Your price: $${selectedProduct.yourPrice.toFixed(2)}</div>
+            `;
+            list.innerHTML = selectedProduct.competitors.map(c => {
+                const diff = selectedProduct.yourPrice - c.price;
+                const diffClass = diff > 0 ? 'color: var(--danger)' : 'color: var(--success)';
+                const diffText = diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
+                return `
+                    <div class="competitor-row">
+                        <div class="competitor-logo">${c.name.charAt(0)}</div>
+                        <div class="competitor-name">${c.name}</div>
+                        <div class="competitor-price">$${c.price.toFixed(2)}</div>
+                        <div class="competitor-diff" style="${diffClass}">${diffText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectProduct(id) {
+            selectedProduct = products.find(p => p.id === id);
+            renderProducts();
+            renderCompetitors();
+            updateChart();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const labels = ['Dec 12', 'Dec 13', 'Dec 14', 'Dec 15', 'Dec 16', 'Dec 17', 'Dec 18'];
+
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Your Price',
+                            data: [99.99, 99.99, 99.99, 99.99, 99.99, 99.99, 99.99],
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Amazon',
+                            data: [94.99, 92.99, 91.99, 89.99, 89.99, 89.99, 89.99],
+                            borderColor: '#f59e0b',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'BestBuy',
+                            data: [99.99, 99.99, 97.99, 94.99, 94.99, 94.99, 94.99],
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#94a3b8', usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            // Update chart for selected product
+        }
+
+        function setRange(range) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showAddProduct() {
+            alert('Add product modal would open here');
+        }
+
+        // Initialize
         renderProducts();
+        renderAlerts();
+        renderCompetitors();
+        renderChart();
     </script>
 </body>
 
