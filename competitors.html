@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitors - PriceHawk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <nav class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-binoculars"></i><span>PriceHawk</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-box"></i> Products</a></li>
+            <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-line"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a href="competitors.html" class="nav-link active"><i class="fas fa-store"></i>
+                    Competitors</a></li>
+            <li class="nav-item"><a href="alerts.html" class="nav-link"><i class="fas fa-bell"></i> Alerts</a></li>
+            <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Competitors</h1>
+                <p class="page-subtitle">Manage and track your competitor stores</p>
+            </div>
+            <button class="btn btn-primary" onclick="showAddModal()"><i class="fas fa-plus"></i> Add Competitor</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-store"></i></div>
+                <div class="stat-value" id="totalCompetitors">0</div>
+                <div class="stat-label">Total Competitors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-link"></i></div>
+                <div class="stat-value" id="activeTracking">0</div>
+                <div class="stat-label">Active Tracking</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="fas fa-box"></i></div>
+                <div class="stat-value" id="productsTracked">0</div>
+                <div class="stat-label">Products Tracked</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-store"></i> Your Competitors</h3>
+                <input type="text" class="form-input" style="width: 250px;" placeholder="Search competitors..."
+                    id="searchInput" oninput="filterCompetitors()">
+            </div>
+
+            <div id="competitorGrid"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;"></div>
+        </div>
+    </main>
+
+    <div class="modal" id="addModal"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 1.5rem;">Add Competitor</h3>
+            <div class="form-group">
+                <label class="form-label">Competitor Name</label>
+                <input type="text" class="form-input" id="compName" placeholder="e.g. Amazon, eBay">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Website URL</label>
+                <input type="url" class="form-input" id="compUrl" placeholder="https://competitor.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="compCategory">
+                    <option value="direct">Direct Competitor</option>
+                    <option value="marketplace">Marketplace</option>
+                    <option value="retailer">Retailer</option>
+                    <option value="wholesale">Wholesale</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea class="form-input" id="compNotes" rows="3"
+                    placeholder="Optional notes about this competitor"></textarea>
+            </div>
+            <div class="flex gap-2" style="margin-top: 1.5rem;">
+                <button class="btn btn-primary" onclick="addCompetitor()" style="flex: 1;"><i class="fas fa-plus"></i>
+                    Add Competitor</button>
+                <button class="btn btn-outline" onclick="hideAddModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadCompetitors() {
+            const competitors = HawkAPI.competitors.getAll();
+            const products = HawkAPI.products.getAll();
+
+            document.getElementById('totalCompetitors').textContent = competitors.length;
+            document.getElementById('activeTracking').textContent = competitors.filter(c => c.isActive !== false).length;
+            document.getElementById('productsTracked').textContent = products.length;
+
+            renderCompetitors(competitors);
+        }
+
+        function renderCompetitors(competitors) {
+            const container = document.getElementById('competitorGrid');
+
+            if (competitors.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-muted); grid-column: 1/-1;">No competitors added yet. Add your first competitor to start tracking!</div>';
+                return;
+            }
+
+            container.innerHTML = competitors.map(c => `
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="flex-between mb-2">
+                        <div class="flex gap-2" style="align-items: center;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${c.name}</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">${c.category || 'Direct Competitor'}</div>
+                            </div>
+                        </div>
+                        <span class="badge ${c.isActive !== false ? 'badge-success' : 'badge-warning'}">${c.isActive !== false ? 'Active' : 'Paused'}</span>
+                    </div>
+                    <div class="text-muted mb-2" style="font-size: 0.85rem;">
+                        <i class="fas fa-link"></i> <a href="${c.url}" target="_blank" style="color: var(--primary);">${new URL(c.url).hostname}</a>
+                    </div>
+                    ${c.notes ? `<div class="text-muted mb-2" style="font-size: 0.85rem;">${c.notes}</div>` : ''}
+                    <div class="flex gap-1" style="margin-top: 1rem;">
+                        <button class="btn btn-sm btn-outline" onclick="toggleCompetitor('${c.id}')">
+                            <i class="fas fa-${c.isActive !== false ? 'pause' : 'play'}"></i> ${c.isActive !== false ? 'Pause' : 'Resume'}
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="scrapeCompetitor('${c.id}')">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCompetitor('${c.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCompetitors() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const competitors = HawkAPI.competitors.getAll().filter(c =>
+                c.name.toLowerCase().includes(search) ||
+                c.url.toLowerCase().includes(search)
+            );
+            renderCompetitors(competitors);
+        }
+
+        function showAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function hideAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+        function addCompetitor() {
+            const name = document.getElementById('compName').value.trim();
+            const url = document.getElementById('compUrl').value.trim();
+            const category = document.getElementById('compCategory').value;
+            const notes = document.getElementById('compNotes').value.trim();
+
+            if (!name || !url) {
+                HawkAPI.toast.error('Please fill in required fields');
+                return;
+            }
+
+            try {
+                new URL(url);
+            } catch {
+                HawkAPI.toast.error('Please enter a valid URL');
+                return;
+            }
+
+            HawkAPI.competitors.add({ name, url, category, notes, isActive: true });
+            hideAddModal();
+            loadCompetitors();
+            HawkAPI.toast.success('Competitor added!');
+
+            // Clear form
+            ['compName', 'compUrl', 'compNotes'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function toggleCompetitor(id) {
+            const competitors = HawkAPI.competitors.getAll();
+            const comp = competitors.find(c => c.id === id);
+            if (comp) {
+                comp.isActive = !comp.isActive;
+                HawkAPI.competitors.save(competitors);
+                loadCompetitors();
+                HawkAPI.toast.success(comp.isActive ? 'Tracking resumed' : 'Tracking paused');
+            }
+        }
+
+        async function scrapeCompetitor(id) {
+            const competitors = HawkAPI.competitors.getAll();
+            const comp = competitors.find(c => c.id === id);
+            if (comp) {
+                HawkAPI.toast.show('Fetching latest prices...');
+                await HawkAPI.scrapePrice(comp.url);
+                comp.lastScraped = new Date().toISOString();
+                HawkAPI.competitors.save(competitors);
+                loadCompetitors();
+                HawkAPI.toast.success('Prices updated!');
+            }
+        }
+
+        function deleteCompetitor(id) {
+            if (!confirm('Delete this competitor?')) return;
+            HawkAPI.competitors.delete(id);
+            loadCompetitors();
+            HawkAPI.toast.success('Competitor deleted');
+        }
+
+        loadCompetitors();
+    </script>
+</body>
+
+</html>

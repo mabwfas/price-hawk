@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PriceHawk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <nav class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-binoculars"></i><span>PriceHawk</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-box"></i> Products</a></li>
+            <li class="nav-item"><a href="dashboard.html" class="nav-link active"><i class="fas fa-chart-line"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a href="competitors.html" class="nav-link"><i class="fas fa-store"></i>
+                    Competitors</a></li>
+            <li class="nav-item"><a href="alerts.html" class="nav-link"><i class="fas fa-bell"></i> Alerts</a></li>
+            <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Overview of your price tracking performance</p>
+            </div>
+            <a href="index.html" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fas fa-box"></i></div>
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Products Tracked</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-arrow-down"></i></div>
+                <div class="stat-value" id="lowerCount">0</div>
+                <div class="stat-label">Lower Than Competitors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="fas fa-arrow-up"></i></div>
+                <div class="stat-value" id="higherCount">0</div>
+                <div class="stat-label">Higher Than Competitors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="fas fa-bell"></i></div>
+                <div class="stat-value" id="activeAlerts">0</div>
+                <div class="stat-label">Active Alerts</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-bar"></i> Price Comparison</h3>
+                </div>
+                <div class="chart-container"><canvas id="comparisonChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-pie"></i> Price Position</h3>
+                </div>
+                <div class="chart-container"><canvas id="positionChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-trophy"></i> Best Deals</h3>
+                    <span class="badge badge-success">Your competitive edge</span>
+                </div>
+                <div id="bestDeals"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Needs Attention</h3>
+                    <span class="badge badge-danger">Higher than competitors</span>
+                </div>
+                <div id="needsAttention"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-chart-line"></i> Price Trend (Last 7 Days)</h3>
+            </div>
+            <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        </div>
+    </main>
+
+    <script>
+        let comparisonChart, positionChart, trendChart;
+
+        function loadDashboard() {
+            const analytics = HawkAPI.getAnalytics();
+            const products = HawkAPI.products.getAll();
+
+            // Update stats
+            document.getElementById('totalProducts').textContent = analytics.totalProducts;
+            document.getElementById('lowerCount').textContent = analytics.lowerThanCompetitor;
+            document.getElementById('higherCount').textContent = analytics.higherThanCompetitor;
+            document.getElementById('activeAlerts').textContent = analytics.activeAlerts;
+
+            renderComparisonChart(products);
+            renderPositionChart(analytics);
+            renderTrendChart(products);
+            renderBestDeals(products);
+            renderNeedsAttention(products);
+        }
+
+        function renderComparisonChart(products) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            if (comparisonChart) comparisonChart.destroy();
+
+            const top10 = products.slice(0, 10);
+
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: top10.map(p => p.name.substring(0, 15)),
+                    datasets: [
+                        { label: 'Your Price', data: top10.map(p => p.yourPrice), backgroundColor: '#f59e0b' },
+                        { label: 'Competitor', data: top10.map(p => p.competitorPrice), backgroundColor: '#8b5cf6' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8' } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '$' + v } }
+                    }
+                }
+            });
+        }
+
+        function renderPositionChart(analytics) {
+            const ctx = document.getElementById('positionChart').getContext('2d');
+            if (positionChart) positionChart.destroy();
+
+            positionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lower (Competitive)', 'Higher (Needs Review)', 'Same Price'],
+                    datasets: [{
+                        data: [analytics.lowerThanCompetitor, analytics.higherThanCompetitor, analytics.priceMatch],
+                        backgroundColor: ['#10b981', '#ef4444', '#94a3b8'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function renderTrendChart(products) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const avgYour = products.length ? products.reduce((s, p) => s + p.yourPrice, 0) / products.length : 0;
+            const avgComp = products.length ? products.reduce((s, p) => s + p.competitorPrice, 0) / products.length : 0;
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Your Avg Price',
+                            data: days.map(() => avgYour + (Math.random() - 0.5) * 10),
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245,158,11,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Competitor Avg',
+                            data: days.map(() => avgComp + (Math.random() - 0.5) * 10),
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139,92,246,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8' } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '$' + v.toFixed(0) } }
+                    }
+                }
+            });
+        }
+
+        function renderBestDeals(products) {
+            const container = document.getElementById('bestDeals');
+            const best = products.filter(p => p.yourPrice < p.competitorPrice).sort((a, b) => (b.competitorPrice - b.yourPrice) - (a.competitorPrice - a.yourPrice)).slice(0, 5);
+
+            if (best.length === 0) {
+                container.innerHTML = '<p class="text-muted">No products are priced lower than competitors yet.</p>';
+                return;
+            }
+
+            container.innerHTML = best.map(p => `
+                <div class="flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-weight: 500;">${p.name}</div>
+                        <div class="text-muted" style="font-size: 0.85rem;">${HawkAPI.format.currency(p.yourPrice)} vs ${HawkAPI.format.currency(p.competitorPrice)}</div>
+                    </div>
+                    <span class="badge badge-success">-${HawkAPI.format.currency(p.competitorPrice - p.yourPrice)}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderNeedsAttention(products) {
+            const container = document.getElementById('needsAttention');
+            const high = products.filter(p => p.yourPrice > p.competitorPrice).sort((a, b) => (a.yourPrice - a.competitorPrice) - (b.yourPrice - b.competitorPrice)).slice(0, 5);
+
+            if (high.length === 0) {
+                container.innerHTML = '<p class="text-muted">All your prices are competitive! 🎉</p>';
+                return;
+            }
+
+            container.innerHTML = high.map(p => `
+                <div class="flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-weight: 500;">${p.name}</div>
+                        <div class="text-muted" style="font-size: 0.85rem;">${HawkAPI.format.currency(p.yourPrice)} vs ${HawkAPI.format.currency(p.competitorPrice)}</div>
+                    </div>
+                    <span class="badge badge-danger">+${HawkAPI.format.currency(p.yourPrice - p.competitorPrice)}</span>
+                </div>
+            `).join('');
+        }
+
+        loadDashboard();
+    </script>
+</body>
+
+</html>

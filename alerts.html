@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - PriceHawk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <nav class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-binoculars"></i><span>PriceHawk</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-box"></i> Products</a></li>
+            <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-line"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a href="competitors.html" class="nav-link"><i class="fas fa-store"></i>
+                    Competitors</a></li>
+            <li class="nav-item"><a href="alerts.html" class="nav-link active"><i class="fas fa-bell"></i> Alerts</a>
+            </li>
+            <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Alerts</h1>
+                <p class="page-subtitle">Price change notifications and alerts</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn btn-outline" onclick="markAllRead()"><i class="fas fa-check-double"></i> Mark All
+                    Read</button>
+                <button class="btn btn-primary" onclick="checkAlerts()"><i class="fas fa-sync"></i> Check Now</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="fas fa-bell"></i></div>
+                <div class="stat-value" id="totalAlerts">0</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="stat-value" id="unreadAlerts">0</div>
+                <div class="stat-label">Unread</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value" id="resolvedAlerts">0</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-sliders-h"></i> Alert Settings</h3>
+            </div>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label class="form-label">Default Threshold ($)</label>
+                    <input type="number" class="form-input" id="defaultThreshold" value="10" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Notifications</label>
+                    <select class="form-select" id="emailNotifs">
+                        <option value="all">All Alerts</option>
+                        <option value="important">Important Only</option>
+                        <option value="none">Disabled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Check Frequency</label>
+                    <select class="form-select" id="checkFreq">
+                        <option value="hourly">Hourly</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-bell"></i> Alert History</h3>
+                <select class="form-select" style="width: auto;" id="alertFilter" onchange="filterAlerts()">
+                    <option value="all">All Alerts</option>
+                    <option value="unread">Unread</option>
+                    <option value="read">Read</option>
+                </select>
+            </div>
+            <div id="alertList"></div>
+        </div>
+    </main>
+
+    <script>
+        function loadAlerts() {
+            const alerts = HawkAPI.alerts.getAll();
+
+            document.getElementById('totalAlerts').textContent = alerts.length;
+            document.getElementById('unreadAlerts').textContent = alerts.filter(a => !a.read).length;
+            document.getElementById('resolvedAlerts').textContent = alerts.filter(a => a.resolved).length;
+
+            renderAlerts(alerts);
+            loadSettings();
+        }
+
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alertList');
+            const filter = document.getElementById('alertFilter').value;
+
+            let filtered = alerts;
+            if (filter === 'unread') filtered = alerts.filter(a => !a.read);
+            if (filter === 'read') filtered = alerts.filter(a => a.read);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-muted);">No alerts to show. Your prices are looking good! 🎉</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(a => `
+                <div class="flex-between" style="padding: 1rem; background: ${a.read ? 'transparent' : 'rgba(245,158,11,0.05)'}; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 0.75rem;">
+                    <div class="flex gap-2" style="align-items: center;">
+                        <div style="width: 45px; height: 45px; background: rgba(${a.type === 'price_alert' ? '245,158,11' : '239,68,68'},0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-${a.type === 'price_alert' ? 'tag' : 'exclamation-triangle'}" style="color: ${a.type === 'price_alert' ? 'var(--primary)' : 'var(--danger)'}"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: ${a.read ? '400' : '600'};">${a.productName || 'Price Alert'}</div>
+                            <div class="text-muted" style="font-size: 0.85rem;">${a.message}</div>
+                            <div class="text-muted" style="font-size: 0.8rem; margin-top: 0.25rem;">
+                                Your: ${HawkAPI.format.currency(a.yourPrice)} vs Competitor: ${HawkAPI.format.currency(a.competitorPrice)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-1" style="flex-direction: column; align-items: flex-end;">
+                        <span class="text-muted" style="font-size: 0.8rem;">${HawkAPI.format.timeAgo(a.createdAt)}</span>
+                        <div class="flex gap-1">
+                            ${!a.read ? `<button class="btn btn-sm btn-outline" onclick="markRead('${a.id}')"><i class="fas fa-check"></i></button>` : ''}
+                            <button class="btn btn-sm btn-outline" onclick="deleteAlert('${a.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterAlerts() {
+            renderAlerts(HawkAPI.alerts.getAll());
+        }
+
+        function markRead(id) {
+            HawkAPI.alerts.markRead(id);
+            loadAlerts();
+        }
+
+        function markAllRead() {
+            const alerts = HawkAPI.alerts.getAll();
+            alerts.forEach(a => a.read = true);
+            HawkAPI.alerts.save(alerts);
+            loadAlerts();
+            HawkAPI.toast.success('All alerts marked as read');
+        }
+
+        function deleteAlert(id) {
+            let alerts = HawkAPI.alerts.getAll();
+            alerts = alerts.filter(a => a.id !== id);
+            HawkAPI.alerts.save(alerts);
+            loadAlerts();
+        }
+
+        function checkAlerts() {
+            const newAlerts = HawkAPI.alerts.check();
+            loadAlerts();
+            if (newAlerts.length > 0) {
+                HawkAPI.toast.show(`${newAlerts.length} new alert(s) found!`, 'warning');
+            } else {
+                HawkAPI.toast.success('No new alerts');
+            }
+        }
+
+        function loadSettings() {
+            const settings = HawkAPI.storage.get('alertSettings', {});
+            document.getElementById('defaultThreshold').value = settings.threshold || 10;
+            document.getElementById('emailNotifs').value = settings.emailNotifs || 'all';
+            document.getElementById('checkFreq').value = settings.checkFreq || 'daily';
+        }
+
+        function saveSettings() {
+            const settings = {
+                threshold: parseFloat(document.getElementById('defaultThreshold').value) || 10,
+                emailNotifs: document.getElementById('emailNotifs').value,
+                checkFreq: document.getElementById('checkFreq').value
+            };
+            HawkAPI.storage.set('alertSettings', settings);
+            HawkAPI.toast.success('Settings saved!');
+        }
+
+        loadAlerts();
+    </script>
+</body>
+
+</html>

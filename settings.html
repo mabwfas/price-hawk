@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PriceHawk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <nav class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-binoculars"></i><span>PriceHawk</span></div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="fas fa-box"></i> Products</a></li>
+            <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-chart-line"></i>
+                    Dashboard</a></li>
+            <li class="nav-item"><a href="competitors.html" class="nav-link"><i class="fas fa-store"></i>
+                    Competitors</a></li>
+            <li class="nav-item"><a href="alerts.html" class="nav-link"><i class="fas fa-bell"></i> Alerts</a></li>
+            <li class="nav-item"><a href="settings.html" class="nav-link active"><i class="fas fa-cog"></i> Settings</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Configure PriceHawk preferences</p>
+            </div>
+            <button class="btn btn-primary" onclick="saveAllSettings()"><i class="fas fa-save"></i> Save All</button>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-dollar-sign"></i> Currency & Pricing</h3>
+                <div class="form-group">
+                    <label class="form-label">Default Currency</label>
+                    <select class="form-select" id="currency">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="CAD">CAD ($)</option>
+                        <option value="AUD">AUD ($)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Price Rounding</label>
+                    <select class="form-select" id="rounding">
+                        <option value="2">2 decimal places</option>
+                        <option value="0">No decimals</option>
+                        <option value=".99">Round to .99</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-bell"></i> Notifications</h3>
+                <div class="form-group">
+                    <label class="flex-between" style="cursor: pointer;">
+                        <span>Email Alerts</span>
+                        <input type="checkbox" id="emailAlerts"
+                            style="width: 20px; height: 20px; accent-color: var(--primary);">
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notification Email</label>
+                    <input type="email" class="form-input" id="notifEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="flex-between" style="cursor: pointer;">
+                        <span>Browser Notifications</span>
+                        <input type="checkbox" id="browserNotifs"
+                            style="width: 20px; height: 20px; accent-color: var(--primary);">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-database"></i> Data Management</h3>
+            <div class="grid-3">
+                <div>
+                    <h4 style="margin-bottom: 0.5rem;">Export Data</h4>
+                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Download all products, competitors, and
+                        alerts</p>
+                    <button class="btn btn-outline" onclick="exportData()"><i class="fas fa-download"></i> Export
+                        JSON</button>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 0.5rem;">Import Data</h4>
+                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Restore from backup</p>
+                    <button class="btn btn-outline" onclick="importData()"><i class="fas fa-upload"></i> Import
+                        JSON</button>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 0.5rem;">Clear Data</h4>
+                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Delete all stored data</p>
+                    <button class="btn btn-danger" onclick="clearData()"><i class="fas fa-trash"></i> Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-info-circle"></i> About</h3>
+            <p><strong>PriceHawk</strong> v2.0.0</p>
+            <p class="text-muted mt-1">Competitor price tracking for Shopify stores</p>
+            <p class="mt-2">
+                <a href="https://github.com/mabwfas/price-hawk" target="_blank" class="btn btn-sm btn-outline"><i
+                        class="fab fa-github"></i> GitHub</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        function loadSettings() {
+            const settings = HawkAPI.storage.get('settings', {});
+            document.getElementById('currency').value = settings.currency || 'USD';
+            document.getElementById('rounding').value = settings.rounding || '2';
+            document.getElementById('emailAlerts').checked = settings.emailAlerts || false;
+            document.getElementById('notifEmail').value = settings.notifEmail || '';
+            document.getElementById('browserNotifs').checked = settings.browserNotifs || false;
+        }
+
+        function saveAllSettings() {
+            const settings = {
+                currency: document.getElementById('currency').value,
+                rounding: document.getElementById('rounding').value,
+                emailAlerts: document.getElementById('emailAlerts').checked,
+                notifEmail: document.getElementById('notifEmail').value,
+                browserNotifs: document.getElementById('browserNotifs').checked
+            };
+            HawkAPI.storage.set('settings', settings);
+            HawkAPI.toast.success('Settings saved!');
+        }
+
+        function exportData() {
+            const data = HawkAPI.exportData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'pricehawk-backup.json';
+            a.click();
+            HawkAPI.toast.success('Data exported!');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        HawkAPI.importData(data);
+                        HawkAPI.toast.success('Data imported!');
+                    } catch {
+                        HawkAPI.toast.error('Invalid file');
+                    }
+                };
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        function clearData() {
+            if (!confirm('Delete ALL data? This cannot be undone!')) return;
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('hawk_')) localStorage.removeItem(key);
+            });
+            HawkAPI.toast.success('All data cleared');
+            loadSettings();
+        }
+
+        loadSettings();
+    </script>
+</body>
+
+</html>
